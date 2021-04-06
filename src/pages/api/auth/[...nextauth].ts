@@ -13,7 +13,6 @@ export default NextAuth({
       clientSecret: process.env.GITHUB_SECRET,
       scope: 'read:user',
     }),
-    // ...add more providers here
   ],
   callbacks: {
     async signIn(user, account, profile) {
@@ -22,12 +21,28 @@ export default NextAuth({
       try {
         //inserindo no banco utilizando a linguagem de consulta do Fauna chamado FQL
         await fauna.query(
-          q.Create(
-            q.Collection('users'), //nome da tabela
-            { data: { email } } //dados do usuário que queremos inserir
-          )
+          q.If( //se
+            q.Not( //não
+              q.Exists( //existe uma combinação entre os e-mails(Match)
+                q.Match( //parecido com o where do sql, porém o que desejamos filtrar tem que está nos índices
+                  q.Index('user_by_email'),
+                  q.Casefold(user.email) //o case fold é para transformar tudo em minúscula
+                )
+              )
+            ),
+            q.Create( //então insere no banco o e-mail
+              q.Collection('users'), //nome da tabela
+              { data: { email } } //dados do usuário que queremos inserir
+            ),
+            q.Get( //se não, se já existe eu busco as informações -> select
+              q.Match( // que sejam iguais
+                q.Index('user_by_email'),
+                q.Casefold(user.email)
+              )
+            )
+          ) 
         )
-  
+              
         return true
 
       } catch {
