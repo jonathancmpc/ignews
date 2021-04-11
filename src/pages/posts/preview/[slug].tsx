@@ -59,13 +59,15 @@ export default function PostPreview({ post }: PostPreviewProps) {
   )
 }
 
+
 export const getStaticPaths = () => {
   return {
-    paths: [],
-    fallback: 'blocking'
+    paths: [], //Quais posts gerar durante a build, quando não passamos nada, as páginas são carregadas dinâmicamente durante o carregamento da página
+    fallback: 'blocking' //Pode-se usar true, false ou blocking. O blocking quando a página estática não estiver carregada ainda, faz com que seja carregada pelo Next no Server site render. 
   }
 }
 
+//Gerando o back do Next uma página estática
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const { slug } = params;
 
@@ -87,6 +89,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   return {
     props: {
       post
-    }
+    },
+    redirect: 60 * 30, //Redirecionando e carregando novamente a página estática uma vez a cada 30 minutos
   }
 }

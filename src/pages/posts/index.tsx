@@ -1,8 +1,10 @@
 import { GetStaticProps } from 'next';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import Prismic from '@prismicio/client';
 import { RichText } from 'prismic-dom';
 import Head from 'next/head'
+import { useSession } from 'next-auth/client';
 import { getPrismicClient } from '../../services/prismic';
 
 import styles from './styles.module.scss'
@@ -19,6 +21,17 @@ interface PostsProps {
 }
 
 export default function Posts({ posts }:PostsProps) {
+  //Verificando se o usuário está logado
+  const [session]: any = useSession();
+  const [router, setRouter] = useState('/posts/')
+
+  useEffect(() => {
+    if(!session?.activeSubscription) {
+      setRouter('posts/preview/');
+    }
+  }, [session]);
+
+
   return(
     <>
       <Head>
@@ -28,7 +41,7 @@ export default function Posts({ posts }:PostsProps) {
       <main className={styles.container}>
         <div className={styles.posts}>
           { posts.map(post => (
-            <Link href={`/posts/${post.slug}`}>
+            <Link href={`${router}${post.slug}`}>
               <a key={post.slug}>
                 <time>{post.updatedAt}</time>
                 <strong>{post.title}</strong>
